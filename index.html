@@ -70,3 +70,27 @@
 
         video {
             width: 100%;
+            height: 100%;
+            object-fit: contain; /* 動画の比率を崩さずに画面に収めます */
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>My Portfolio</h1>
+        <nav>
+            <ul>
+                <li><a href="#about">About</a></li>
+                <li><a href="#works">Works</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="video-container">
+        <video src="251128_3.mp4" controls autoplay muted loop playsinline></video>
+    </div>
+
+</body>
+</html>
