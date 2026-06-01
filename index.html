@@ -3,45 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Portfolio</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Video</title>
+    <style>
+        /* 画面全体の余白をゼロにし、真っ黒な背景で中央揃えの準備をします */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* スクロールバーを完全に消します */
+        }
+
+        /* 動画を画面いっぱいに、かつアスペクト比を保って真ん中に配置します */
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* 動画の比率を崩さずに画面に収めます（画面に隙間なく広げたい場合は cover に変更してください） */
+        }
+    </style>
 </head>
 <body>
 
-    <header>
-        <h1>My Portfolio</h1>
-        <nav>
-            <ul>
-                <li><a href="#about">About</a></li>
-                <li><a href="#works">Works</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <main>
-        <section id="about">
-            <h2>About Me</h2>
-            <p>ここに簡単な自己紹介テキストを入力します。</p>
-        </section>
-
-        <section id="works">
-            <h2>Works</h2>
-            <div class="work-item">
-                <h3>作品タイトル1</h3>
-                <p>作品の説明や使用した技術などを書きます。</p>
-            </div>
-        </section>
-
-        <section id="contact">
-            <h2>Contact</h2>
-            <p>連絡先やSNSへのリンクをここに記載します。</p>
-        </section>
-    </main>
-
-    <footer>
-        <p>&copy; 2026 nekonoumi0419-sys. All rights reserved.</p>
-    </footer>
+    <video src="251128_3.mp4" controls autoplay muted loop playsinline></video>
 
 </body>
 </html>
