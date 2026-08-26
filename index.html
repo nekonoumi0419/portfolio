@@ -8,6 +8,34 @@
 
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* ギャラリー用の最小スタイル */
+        .gallery { position: relative; display: inline-block; }
+        .gallery-image { display: block; max-width: 100%; height: auto; }
+        .gallery-next {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            border: none;
+            padding: 8px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .gallery-next:focus { outline: 2px solid #fff; }
+        /* グリッド表示（.works-grid 内）のカードではカード内矢印を非表示にする */
+        .works-grid .gallery-next { display: none !important; }
+        /* モーダル内スライド用スタイル */
+        .modal .modal-image-container { position: relative; overflow: hidden; min-height: 320px; }
+        .modal .modal-image-container .modal-media { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; transition: transform 320ms ease, opacity 320ms ease; }
+        .modal .modal-image-container .modal-prev,
+        .modal .modal-image-container .modal-next { position: absolute; top: 50%; transform: translateY(-50%); z-index: 20; }
+        .modal .modal-image-container .modal-prev { left: 8px; }
+        .modal .modal-image-container .modal-next { right: 8px; }
+    </style>
 </head>
 
 <body>
@@ -140,6 +168,19 @@
                     <h3>ねがいさまざまおきつねさま</h3>
                     <span class="work-category">MOVIE</span>
                     <span class="work-category">MODELING</span>
+                </div>
+            </article>
+
+            <article class="work-card clickable-card" data-category="illustration" data-title="METEOROGRAPHY"
+                data-description="A5/12P/フルカラー。イラスト集を制作しました。"
+                data-images="meteorography.JPG,contents.JPG,page1.JPG,page2.JPG">
+                <div class="gallery">
+                    <img class="gallery-image" src="meteorography.JPG" alt="meteorography" draggable="false">
+                    <button class="gallery-next" aria-label="次の画像">›</button>
+                </div>
+                <div class="work-info">
+                    <h3>METEOROGRAPHY</h3>
+                    <span class="work-category">ILLUSTRATION</span>
                 </div>
             </article>
 
@@ -539,78 +580,60 @@
             if (index < 0 || index >= currentMediaList.length) return;
 
             const oldMedia = modalMediaContainer.querySelector('img, video, iframe');
-            if (oldMedia) {
-                // スライドアウト遷移開始
-                oldMedia.classList.add('slide-out');
 
-                setTimeout(() => {
-                    // 古いメディア要素をクリア（ボタンは残す）
-                    const oldImg = modalMediaContainer.querySelector('img');
-                    if (oldImg) oldImg.remove();
-                    const oldVideo = modalMediaContainer.querySelector('video');
-                    if (oldVideo) oldVideo.remove();
-                    const oldIframe = modalMediaContainer.querySelector('iframe');
-                    if (oldIframe) oldIframe.remove();
+            // Determine movement direction correctly even when wrapping (e.g., last -> first)
+            const n = currentMediaList.length;
+            const step = (index - currentMediaIndex + n) % n; // 1 means forward (next)
+            const direction = (step === 1) ? 'left' : 'right';
+            const outX = direction === 'left' ? '-100%' : '100%';
+            const inStartX = direction === 'left' ? '100%' : '-100%';
 
-                    const newSrc = currentMediaList[index];
-                    const isYouTube = newSrc.includes('youtube.com') || newSrc.includes('youtu.be');
-                    const isVideo = !isYouTube && newSrc.endsWith('.mp4');
-                    let newMedia;
-                    if (isYouTube) {
-                        const iframe = document.createElement('iframe');
-                        iframe.src = newSrc;
-                        iframe.title = title;
-                        iframe.frameBorder = '0';
-                        iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; clipboard-write; gyroscope; web-share';
-                        iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
-                        iframe.allowFullscreen = true;
-
-                        newMedia = iframe;
-                    } else if (isVideo) {
-                        newMedia = document.createElement('video');
-                        newMedia.src = newSrc;
-                        // Autoplay removed per user request
-                        newMedia.loop = true;
-                        newMedia.muted = true;
-                        newMedia.setAttribute('playsinline', '');
-                        newMedia.controls = true;
-                    } else {
-                        newMedia = document.createElement('img');
-                        newMedia.src = newSrc;
-                        newMedia.alt = title;
-                        newMedia.setAttribute('draggable', 'false');
-                    }
-
-                    if (isVideo) {
-                        newMedia = document.createElement('video');
-                        newMedia.src = newSrc;
-                        // Autoplay removed per user request
-                        newMedia.loop = true;
-                        newMedia.muted = true;
-                        newMedia.setAttribute('playsinline', '');
-                        newMedia.controls = true;
-                    } else {
-                        newMedia = document.createElement('img');
-                        newMedia.src = newSrc;
-                        newMedia.alt = modalTitle.textContent;
-                        newMedia.setAttribute('draggable', 'false');
-                    }
-
-                    newMedia.classList.add('slide-in');
-
-                    // 矢印ボタンの前に挿入
-                    modalMediaContainer.insertBefore(newMedia, modalPrev);
-
-                    // フェードインのアニメーション
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                            newMedia.classList.remove('slide-in');
-                        });
-                    });
-
-                    currentMediaIndex = index;
-                }, 250);
+            const newSrc = currentMediaList[index];
+            const isYouTube = newSrc.includes('youtube.com') || newSrc.includes('youtu.be');
+            const isVideo = !isYouTube && newSrc.endsWith('.mp4');
+            const mediaTitle = modalTitle.textContent || '';
+            let newMedia;
+            if (isYouTube) {
+                const iframe = document.createElement('iframe');
+                iframe.src = newSrc;
+                iframe.title = mediaTitle;
+                iframe.frameBorder = '0';
+                iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; clipboard-write; gyroscope; web-share';
+                iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+                iframe.allowFullscreen = true;
+                newMedia = iframe;
+            } else if (isVideo) {
+                newMedia = document.createElement('video');
+                newMedia.src = newSrc;
+                newMedia.loop = true;
+                newMedia.muted = true;
+                newMedia.setAttribute('playsinline', '');
+                newMedia.controls = true;
+            } else {
+                newMedia = document.createElement('img');
+                newMedia.src = newSrc;
+                newMedia.alt = mediaTitle;
+                newMedia.setAttribute('draggable', 'false');
             }
+
+            newMedia.classList.add('modal-media');
+            newMedia.style.transform = `translateX(${inStartX})`;
+            modalMediaContainer.insertBefore(newMedia, modalPrev);
+
+            if (oldMedia) {
+                oldMedia.classList.add('modal-media');
+                oldMedia.style.transform = 'translateX(0)';
+            }
+
+            requestAnimationFrame(() => {
+                newMedia.style.transform = 'translateX(0)';
+                if (oldMedia) oldMedia.style.transform = `translateX(${outX})`;
+            });
+
+            setTimeout(() => {
+                if (oldMedia) oldMedia.remove();
+                currentMediaIndex = index;
+            }, 360);
         }
 
         modalPrev.addEventListener('click', (e) => {
@@ -637,8 +660,10 @@
                     currentMediaList = [];
                     currentMediaIndex = 0;
 
-                    if (card.dataset.videos) {
-                        currentMediaList = card.dataset.videos.split(',');
+                    if (card.dataset.images) {
+                        currentMediaList = card.dataset.images.split(',').map(s => s.trim());
+                    } else if (card.dataset.videos) {
+                        currentMediaList = card.dataset.videos.split(',').map(s => s.trim());
                     } else if (card.dataset.video) {
                         // Check if the video is a YouTube link
                         const src = card.dataset.video.trim();
@@ -738,6 +763,25 @@
             } else {
                 header.classList.remove('show');
             }
+        });
+
+        // カード内ギャラリーの次ボタン（カード内で画像を切り替える）
+        document.querySelectorAll('.work-card .gallery-next').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const card = btn.closest('.work-card');
+                if (!card) return;
+                const img = card.querySelector('.gallery-image');
+                if (!img) return;
+                const images = (card.dataset.images || '').split(',').map(s => s.trim()).filter(Boolean);
+                if (images.length === 0) return;
+                let idx = parseInt(card.dataset.currentIndex || '0', 10);
+                idx = (idx + 1) % images.length;
+                console.log('gallery-next click', { title: card.dataset.title, idx, next: images[idx] });
+                img.src = images[idx];
+                img.alt = card.dataset.title || '';
+                card.dataset.currentIndex = String(idx);
+            });
         });
 
     </script>
